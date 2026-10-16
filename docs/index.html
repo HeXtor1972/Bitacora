@@ -296,3 +296,156 @@ function getAllEntries(){
     const tx = db.transaction(STORE, 'readonly');
     const req = tx.objectStore(STORE).getAll();
     req.onsuccess = () => resolve(req.result.sort((a,b)=> b.timestamp - a.timestamp));
+
+        req.onerror = () => reject(req.error);
+  });
+}
+
+const feed = document.getElementById('feed');
+const noteInput = document.getElementById('note-input');
+const saveBtn = document.getElementById('save-btn');
+const photoBtn = document.getElementById('photo-btn');
+const photoInput = document.getElementById('photo-input');
+const previewStrip = document.getElementById('photo-preview-strip');
+const toast = document.getElementById('toast');
+
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(()=> toast.classList.remove('show'), 1600);
+}
+
+function fmtDay(ts){
+  const d = new Date(ts);
+  const today = new Date();
+  const isToday = d.toDateString() === today.toDateString();
+  const yesterday = new Date(today); yesterday.setDate(today.getDate()-1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+  if(isToday) return 'Hoy';
+  if(isYesterday) return 'Ayer';
+  return d.toLocaleDateString('es-CL', {day:'numeric', month:'long', year: d.getFullYear()!==today.getFullYear() ? 'numeric' : undefined});
+}
+function fmtTime(ts){
+  return new Date(ts).toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'});
+}
+
+async function render(){
+  const entries = await getAllEntries();
+  feed.innerHTML = '';
+  if(entries.length === 0){
+    feed.innerHTML = `<div id="empty-state"><div class="glyph">＋</div><p>Aún no hay apuntes.<br>Escribe algo o toma una foto para empezar tu bitácora.</p></div>`;
+    return;
+  }
+  let lastDay = null;
+  for(const entry of entries){
+    const dayLabel = fmtDay(entry.timestamp);
+    if(dayLabel !== lastDay){
+      const lbl = document.createElement('div');
+      lbl.className = 'day-label';
+      lbl.textContent = dayLabel;
+      feed.appendChild(lbl);
+      lastDay = dayLabel;
+    }
+    const card = document.createElement('div');
+    card.className = 'entry';
+    let inner = `<span class="entry-time">${fmtTime(entry.timestamp)}</span>`;
+    if(entry.text){
+      inner += `<p class="entry-text">${escapeHtml(entry.text)}</p>`;
+    }
+    if(entry.photos && entry.photos.length){
+      for(const p of entry.photos){
+        inner += `<img class="entry-photo" src="${p}" alt="Foto del apunte">`;
+      }
+    }
+    card.innerHTML = inner;
+    const delBtn = document.createElement('button');
+    delBtn.className = 'entry-del';
+    delBtn.textContent = '✕';
+    delBtn.onclick = async () => {
+      await deleteEntry(entry.id);
+      render();
+    };
+    card.appendChild(delBtn);
+    feed.appendChild(card);
+  }
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function updatePreviewStrip(){
+  previewStrip.innerHTML = '';
+  pendingPhotos.forEach((p, idx) => {
+    const img = document.createElement('img');
+    img.src = p;
+    img.onclick = () => { pendingPhotos.splice(idx,1); updatePreviewStrip(); updateSaveState(); };
+    previewStrip.appendChild(img);
+  });
+}
+
+function updateSaveState(){
+  const hasContent = noteInput.value.trim().length > 0 || pendingPhotos.length > 0;
+  saveBtn.disabled = !hasContent;
+}
+
+noteInput.addEventListener('input', () => {
+  noteInput.style.height = 'auto';
+  noteInput.style.height = Math.min(noteInput.scrollHeight, 120) + 'px';
+  updateSaveState();
+});
+
+photoBtn.addEventListener('click', () => photoInput.click());
+
+photoInput.addEventListener('change', async () => {
+  const files = Array.from(photoInput.files || []);
+  for(const file of files){
+    const dataUrl = await fileToDataUrl(file);
+    pendingPhotos.push(dataUrl);
+  }
+  photoInput.value = '';
+  updatePreviewStrip();
+  updateSaveState();
+});
+
+function fileToDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+saveBtn.addEventListener('click', async () => {
+  const text = noteInput.value.trim();
+  if(!text && pendingPhotos.length === 0) return;
+  const entry = {
+    id: Date.now() + '-' + Math.random().toString(36).slice(2,8),
+    text,
+    photos: pendingPhotos.slice(),
+    timestamp: Date.now()
+  };
+  await addEntry(entry);
+  noteInput.value = '';
+  noteInput.style.height = 'auto';
+  pendingPhotos = [];
+  updatePreviewStrip();
+  updateSaveState();
+  render();
+  showToast('Guardado');
+});
+
+(async function init(){
+  db = await openDB();
+  await render();
+  updateSaveState();
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+const CACHE_NAME = 'bitacora-v2';
 const CACHE_NAME = 'bitacora-v1';
 const ASSETS = [
   './index.html',
