@@ -190,6 +190,13 @@ loginForm.addEventListener('submit', async (e) => {
 });
 
 logoutBtn.addEventListener('click', () => signOut(auth));
+const togglePass = $('toggle-pass');
+togglePass.addEventListener('click', () => {
+  const show = loginPass.type === 'password';
+  loginPass.type = show ? 'text' : 'password';
+  togglePass.textContent = show ? 'Ocultar' : 'Ver';
+  togglePass.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+});
 
 noteInput.addEventListener('input', () => {
   noteInput.style.height = 'auto';

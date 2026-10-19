@@ -53,6 +53,14 @@
   }
   #login-btn:disabled{background:#3a3d46; color:#6b6d76; cursor:default;}
   #login-error{min-height:20px; margin:0; font-size:13px; color:var(--danger);}
+  .pass-wrap{position:relative; display:block;}
+  .pass-wrap input{width:100%; padding-right:78px;}
+  #toggle-pass{
+    position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    background:transparent; border:none; color:var(--text-muted);
+    font-family:inherit; font-size:13px; padding:8px 10px; cursor:pointer;
+  }
+  #toggle-pass:active{color:var(--text-primary);}
 
   #main-view{flex:1; display:flex; flex-direction:column;}
   #feed{flex:1; padding:16px 16px 160px; display:flex; flex-direction:column; gap:18px;}
@@ -134,7 +142,10 @@
         <input id="login-email" type="email" autocomplete="username" required>
       </label>
       <label>Contraseña
-        <input id="login-pass" type="password" autocomplete="current-password" required>
+        <span class="pass-wrap">
+          <input id="login-pass" type="password" autocomplete="current-password" required>
+          <button id="toggle-pass" type="button" aria-label="Mostrar contraseña">Ver</button>
+        </span>
       </label>
       <p id="login-error" role="alert"></p>
       <button id="login-btn" type="submit">Entrar</button>
