@@ -12,216 +12,106 @@
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#14151A;
-    --bg-elev:#1D1F26;
-    --paper:#ECE4D3;
-    --ink:#23262B;
-    --text-primary:#ECEAE3;
-    --text-muted:#8B8D97;
-    --accent-capture:#E2572B;
-    --accent-note:#2F7A6B;
-    --danger:#C24343;
-    --border:#2B2D35;
+    --bg:#14151A; --bg-elev:#1D1F26; --paper:#ECE4D3; --ink:#23262B;
+    --text-primary:#ECEAE3; --text-muted:#8B8D97;
+    --accent-capture:#E2572B; --accent-note:#2F7A6B; --danger:#E27A6B; --border:#2B2D35;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  [hidden]{display:none !important;}
   html,body{margin:0;padding:0;height:100%;}
   body{
-    background:var(--bg);
-    color:var(--text-primary);
+    background:var(--bg); color:var(--text-primary);
     font-family:'Inter',system-ui,sans-serif;
-    display:flex;
-    justify-content:center;
-    min-height:100vh;
-    min-height:100dvh;
+    display:flex; justify-content:center; min-height:100dvh;
   }
-  #app{
-    width:100%;
-    max-width:480px;
-    display:flex;
-    flex-direction:column;
-    min-height:100vh;
-    min-height:100dvh;
-    position:relative;
-  }
+  #app{width:100%; max-width:480px; display:flex; flex-direction:column; min-height:100dvh; position:relative;}
 
   header{
-    padding:20px 20px 14px;
-    border-bottom:1px solid var(--border);
-    background:var(--bg-elev);
-    position:sticky;
-    top:0;
-    z-index:5;
+    padding:20px 20px 14px; border-bottom:1px solid var(--border);
+    background:var(--bg-elev); position:sticky; top:0; z-index:5;
   }
-  header h1{
-    margin:0;
-    font-family:'Source Serif 4', Georgia, serif;
-    font-weight:600;
-    font-size:26px;
-    letter-spacing:0.2px;
+  .head-row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  header h1{margin:0; font-family:'Source Serif 4',Georgia,serif; font-weight:600; font-size:26px;}
+  header p{margin:4px 0 0; font-size:13px; color:var(--text-muted); overflow-wrap:anywhere;}
+  #logout-btn{
+    background:transparent; color:var(--text-muted); border:1px solid var(--border);
+    border-radius:20px; padding:7px 14px; font-size:13px; font-family:inherit; cursor:pointer; flex-shrink:0;
   }
-  header p{
-    margin:4px 0 0;
-    font-size:13px;
-    color:var(--text-muted);
-  }
+  #logout-btn:active{background:var(--border);}
 
-  #feed{
-    flex:1;
-    overflow-y:auto;
-    padding:16px 16px 140px;
-    display:flex;
-    flex-direction:column;
-    gap:18px;
+  #login-view{flex:1; display:flex; flex-direction:column; justify-content:center; padding:24px 20px 60px;}
+  #login-form{display:flex; flex-direction:column; gap:14px;}
+  #login-form label{font-size:13px; color:var(--text-muted); display:flex; flex-direction:column; gap:6px;}
+  #login-form input{
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:12px;
+    color:var(--text-primary); font-family:inherit; font-size:16px; padding:13px 14px; outline:none;
   }
+  #login-form input:focus{border-color:var(--accent-note);}
+  #login-btn{
+    background:var(--accent-note); color:#fff; border:none; border-radius:12px;
+    padding:14px; font-size:16px; font-weight:600; font-family:inherit; cursor:pointer; margin-top:6px;
+  }
+  #login-btn:disabled{background:#3a3d46; color:#6b6d76; cursor:default;}
+  #login-error{min-height:20px; margin:0; font-size:13px; color:var(--danger);}
+
+  #main-view{flex:1; display:flex; flex-direction:column;}
+  #feed{flex:1; padding:16px 16px 160px; display:flex; flex-direction:column; gap:18px;}
 
   .day-label{
-    font-size:12px;
-    font-weight:600;
-    color:var(--text-muted);
-    text-transform:uppercase;
-    letter-spacing:0.06em;
-    margin:6px 2px 0;
+    font-size:12px; font-weight:600; color:var(--text-muted);
+    text-transform:uppercase; letter-spacing:0.06em; margin:6px 2px 0;
   }
-
   .entry{
-    background:var(--paper);
-    color:var(--ink);
-    border-radius:14px;
-    padding:14px 16px;
-    box-shadow:0 1px 0 rgba(0,0,0,0.25);
-    position:relative;
+    background:var(--paper); color:var(--ink); border-radius:14px; padding:14px 16px;
+    box-shadow:0 1px 0 rgba(0,0,0,0.25); position:relative;
   }
-  .entry-time{
-    font-size:11px;
-    color:#6b6d76;
-    margin-bottom:6px;
-    display:block;
-  }
+  .entry-time{font-size:11px; color:#6b6d76; margin-bottom:6px; display:block;}
   .entry-text{
-    font-family:'Source Serif 4', Georgia, serif;
-    font-size:16.5px;
-    line-height:1.5;
-    white-space:pre-wrap;
-    word-break:break-word;
-    margin:0;
+    font-family:'Source Serif 4',Georgia,serif; font-size:16.5px; line-height:1.5;
+    white-space:pre-wrap; word-break:break-word; margin:0; padding-right:24px;
   }
-  .entry-photo{
-    width:100%;
-    border-radius:9px;
-    display:block;
-    margin-top:8px;
-  }
-  .entry-photo:first-child{margin-top:0;}
-
+  .entry-photo{width:100%; border-radius:9px; display:block; margin-top:8px;}
   .entry-del{
-    position:absolute;
-    top:10px;
-    right:10px;
-    width:26px;
-    height:26px;
-    border-radius:50%;
-    border:none;
-    background:rgba(0,0,0,0.08);
-    color:#5c5e66;
-    font-size:14px;
-    line-height:1;
-    cursor:pointer;
+    position:absolute; top:10px; right:10px; width:26px; height:26px; border-radius:50%;
+    border:none; background:rgba(0,0,0,0.08); color:#5c5e66; font-size:14px; line-height:1; cursor:pointer;
   }
   .entry-del:active{background:rgba(0,0,0,0.16);}
 
-  #empty-state{
-    margin-top:60px;
-    text-align:center;
-    color:var(--text-muted);
-    padding:0 30px;
-  }
-  #empty-state .glyph{
-    font-family:'Source Serif 4', Georgia, serif;
-    font-size:42px;
-    color:var(--border);
-    margin-bottom:10px;
-  }
+  #empty-state{margin-top:60px; text-align:center; color:var(--text-muted); padding:0 30px;}
+  #empty-state .glyph{font-family:'Source Serif 4',Georgia,serif; font-size:42px; color:var(--border); margin-bottom:10px;}
   #empty-state p{font-size:14px; line-height:1.5;}
 
   #capture-bar{
-    position:fixed;
-    bottom:0;
-    left:50%;
-    transform:translateX(-50%);
-    width:100%;
-    max-width:480px;
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px;
     background:linear-gradient(180deg, rgba(20,21,26,0) 0%, var(--bg) 28%);
-    padding:18px 16px calc(18px + env(safe-area-inset-bottom));
-    z-index:6;
+    padding:18px 16px calc(18px + env(safe-area-inset-bottom)); z-index:6;
   }
   #compose{
-    background:var(--bg-elev);
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:10px 10px 10px 16px;
-    display:flex;
-    align-items:flex-end;
-    gap:8px;
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:16px;
+    padding:10px 10px 10px 16px; display:flex; align-items:flex-end; gap:8px;
   }
   #note-input{
-    flex:1;
-    background:transparent;
-    border:none;
-    color:var(--text-primary);
-    font-family:'Inter',system-ui,sans-serif;
-    font-size:15px;
-    resize:none;
-    outline:none;
-    max-height:120px;
-    line-height:1.4;
-    padding:8px 0;
+    flex:1; background:transparent; border:none; color:var(--text-primary);
+    font-family:'Inter',system-ui,sans-serif; font-size:15px; resize:none; outline:none;
+    max-height:120px; line-height:1.4; padding:8px 0;
   }
   #note-input::placeholder{color:var(--text-muted);}
-
   .icon-btn{
-    border:none;
-    border-radius:50%;
-    width:42px;
-    height:42px;
-    flex-shrink:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    color:#fff;
+    border:none; border-radius:50%; width:42px; height:42px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff;
   }
   #photo-btn{background:var(--accent-capture);}
   #save-btn{background:var(--accent-note);}
   #save-btn:disabled{background:#3a3d46; color:#6b6d76; cursor:default;}
-
   #photo-input{display:none;}
-
-  #photo-preview-strip{
-    display:flex;
-    gap:6px;
-    padding:0 4px 8px;
-    overflow-x:auto;
-  }
-  #photo-preview-strip img{
-    width:56px;height:56px;object-fit:cover;border-radius:8px;
-    border:1px solid var(--border);
-  }
+  #photo-preview-strip{display:flex; gap:6px; padding:0 4px 8px; overflow-x:auto;}
+  #photo-preview-strip img{width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--border);}
 
   #toast{
-    position:fixed;
-    top:14px;
-    left:50%;
-    transform:translateX(-50%) translateY(-40px);
-    background:var(--ink);
-    color:var(--paper);
-    padding:9px 16px;
-    border-radius:20px;
-    font-size:13px;
-    opacity:0;
-    transition:all .25s ease;
-    z-index:20;
-    pointer-events:none;
-    white-space:nowrap;
+    position:fixed; top:14px; left:50%; transform:translateX(-50%) translateY(-40px);
+    background:var(--paper); color:var(--ink); padding:9px 16px; border-radius:20px;
+    font-size:13px; opacity:0; transition:all .25s ease; z-index:20; pointer-events:none; white-space:nowrap;
   }
   #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 </style>
@@ -229,223 +119,47 @@
 <body>
 <div id="app">
   <header>
-    <h1>Bitácora</h1>
-    <p>Apuntes y fotos, guardados en este teléfono</p>
+    <div class="head-row">
+      <div>
+        <h1>Bitácora</h1>
+        <p id="subtitle">Cargando…</p>
+      </div>
+      <button id="logout-btn" type="button" hidden>Salir</button>
+    </div>
   </header>
 
-  <div id="feed"></div>
+  <section id="login-view" hidden>
+    <form id="login-form">
+      <label>Correo
+        <input id="login-email" type="email" autocomplete="username" required>
+      </label>
+      <label>Contraseña
+        <input id="login-pass" type="password" autocomplete="current-password" required>
+      </label>
+      <p id="login-error" role="alert"></p>
+      <button id="login-btn" type="submit">Entrar</button>
+    </form>
+  </section>
 
-  <div id="capture-bar">
-    <div id="photo-preview-strip"></div>
-    <div id="compose">
-      <textarea id="note-input" placeholder="Escribe un apunte…" rows="1"></textarea>
-      <input type="file" id="photo-input" accept="image/*" capture="environment" multiple>
-      <button class="icon-btn" id="photo-btn" title="Tomar foto" aria-label="Tomar foto">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.3" stroke="white" stroke-width="1.8"/></svg>
-      </button>
-      <button class="icon-btn" id="save-btn" title="Guardar" aria-label="Guardar" disabled>
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
+  <section id="main-view" hidden>
+    <div id="feed"></div>
+    <div id="capture-bar">
+      <div id="photo-preview-strip"></div>
+      <div id="compose">
+        <textarea id="note-input" placeholder="Escribe un apunte…" rows="1"></textarea>
+        <input type="file" id="photo-input" accept="image/*" capture="environment" multiple>
+        <button class="icon-btn" id="photo-btn" type="button" title="Tomar foto" aria-label="Tomar foto">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.3" stroke="white" stroke-width="1.8"/></svg>
+        </button>
+        <button class="icon-btn" id="save-btn" type="button" title="Guardar" aria-label="Guardar" disabled>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
     </div>
-  </div>
+  </section>
 
   <div id="toast"></div>
 </div>
-
-<script>
-const DB_NAME = 'bitacora-db';
-const STORE = 'entries';
-let db;
-let pendingPhotos = [];
-
-function openDB(){
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => {
-      const d = req.result;
-      if(!d.objectStoreNames.contains(STORE)){
-        const s = d.createObjectStore(STORE, {keyPath:'id'});
-        s.createIndex('timestamp', 'timestamp');
-      }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-function addEntry(entry){
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).add(entry);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-function deleteEntry(id){
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).delete(id);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-function getAllEntries(){
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readonly');
-    const req = tx.objectStore(STORE).getAll();
-    req.onsuccess = () => resolve(req.result.sort((a,b)=> b.timestamp - a.timestamp));
-
-        req.onerror = () => reject(req.error);
-  });
-}
-
-const feed = document.getElementById('feed');
-const noteInput = document.getElementById('note-input');
-const saveBtn = document.getElementById('save-btn');
-const photoBtn = document.getElementById('photo-btn');
-const photoInput = document.getElementById('photo-input');
-const previewStrip = document.getElementById('photo-preview-strip');
-const toast = document.getElementById('toast');
-
-function showToast(msg){
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(()=> toast.classList.remove('show'), 1600);
-}
-
-function fmtDay(ts){
-  const d = new Date(ts);
-  const today = new Date();
-  const isToday = d.toDateString() === today.toDateString();
-  const yesterday = new Date(today); yesterday.setDate(today.getDate()-1);
-  const isYesterday = d.toDateString() === yesterday.toDateString();
-  if(isToday) return 'Hoy';
-  if(isYesterday) return 'Ayer';
-  return d.toLocaleDateString('es-CL', {day:'numeric', month:'long', year: d.getFullYear()!==today.getFullYear() ? 'numeric' : undefined});
-}
-function fmtTime(ts){
-  return new Date(ts).toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'});
-}
-
-async function render(){
-  const entries = await getAllEntries();
-  feed.innerHTML = '';
-  if(entries.length === 0){
-    feed.innerHTML = `<div id="empty-state"><div class="glyph">＋</div><p>Aún no hay apuntes.<br>Escribe algo o toma una foto para empezar tu bitácora.</p></div>`;
-    return;
-  }
-  let lastDay = null;
-  for(const entry of entries){
-    const dayLabel = fmtDay(entry.timestamp);
-    if(dayLabel !== lastDay){
-      const lbl = document.createElement('div');
-      lbl.className = 'day-label';
-      lbl.textContent = dayLabel;
-      feed.appendChild(lbl);
-      lastDay = dayLabel;
-    }
-    const card = document.createElement('div');
-    card.className = 'entry';
-    let inner = `<span class="entry-time">${fmtTime(entry.timestamp)}</span>`;
-    if(entry.text){
-      inner += `<p class="entry-text">${escapeHtml(entry.text)}</p>`;
-    }
-    if(entry.photos && entry.photos.length){
-      for(const p of entry.photos){
-        inner += `<img class="entry-photo" src="${p}" alt="Foto del apunte">`;
-      }
-    }
-    card.innerHTML = inner;
-    const delBtn = document.createElement('button');
-    delBtn.className = 'entry-del';
-    delBtn.textContent = '✕';
-    delBtn.onclick = async () => {
-      await deleteEntry(entry.id);
-      render();
-    };
-    card.appendChild(delBtn);
-    feed.appendChild(card);
-  }
-}
-
-function escapeHtml(str){
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
-}
-
-function updatePreviewStrip(){
-  previewStrip.innerHTML = '';
-  pendingPhotos.forEach((p, idx) => {
-    const img = document.createElement('img');
-    img.src = p;
-    img.onclick = () => { pendingPhotos.splice(idx,1); updatePreviewStrip(); updateSaveState(); };
-    previewStrip.appendChild(img);
-  });
-}
-
-function updateSaveState(){
-  const hasContent = noteInput.value.trim().length > 0 || pendingPhotos.length > 0;
-  saveBtn.disabled = !hasContent;
-}
-
-noteInput.addEventListener('input', () => {
-  noteInput.style.height = 'auto';
-  noteInput.style.height = Math.min(noteInput.scrollHeight, 120) + 'px';
-  updateSaveState();
-});
-
-photoBtn.addEventListener('click', () => photoInput.click());
-
-photoInput.addEventListener('change', async () => {
-  const files = Array.from(photoInput.files || []);
-  for(const file of files){
-    const dataUrl = await fileToDataUrl(file);
-    pendingPhotos.push(dataUrl);
-  }
-  photoInput.value = '';
-  updatePreviewStrip();
-  updateSaveState();
-});
-
-function fileToDataUrl(file){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-saveBtn.addEventListener('click', async () => {
-  const text = noteInput.value.trim();
-  if(!text && pendingPhotos.length === 0) return;
-  const entry = {
-    id: Date.now() + '-' + Math.random().toString(36).slice(2,8),
-    text,
-    photos: pendingPhotos.slice(),
-    timestamp: Date.now()
-  };
-  await addEntry(entry);
-  noteInput.value = '';
-  noteInput.style.height = 'auto';
-  pendingPhotos = [];
-  updatePreviewStrip();
-  updateSaveState();
-  render();
-  showToast('Guardado');
-});
-
-(async function init(){
-  db = await openDB();
-  await render();
-  updateSaveState();
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
-  }
-})();
-</script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
