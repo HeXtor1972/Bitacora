@@ -126,7 +126,26 @@
     font-size:13px; opacity:0; transition:all .25s ease; z-index:20; pointer-events:none; white-space:nowrap;
   }
   #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  #attach-btn{background:var(--paper);}
+  #attach-btn:active{background:#d9d0bb;}
+  #file-input{display:none;}
+  #file-preview-strip{display:flex; flex-direction:column; gap:6px; padding:0 4px 8px;}
+  .file-chip{
+    display:flex; align-items:center; gap:8px; background:var(--bg-elev);
+    border:1px solid var(--border); border-radius:10px; padding:8px 10px; font-size:13px;
+  }
+  .file-chip .name{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .file-chip .size{color:var(--text-muted); flex-shrink:0;}
+  .file-chip button{background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:2px 6px;}
+  .entry-file{
+    display:flex; align-items:center; gap:8px; margin-top:8px; padding:9px 11px; width:100%;
+    background:rgba(0,0,0,0.06); border:none; border-radius:9px;
+    font-family:inherit; font-size:13.5px; color:var(--ink); cursor:pointer; text-align:left;
+  }
+  .entry-file .name{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .entry-file .size{color:#6b6d76; flex-shrink:0;}
 </style>
+
 </head>
 <body>
 <div id="app">
@@ -157,15 +176,20 @@
     </form>
   </section>
 
-  <section id="main-view" hidden>
+  <section id="main-view" hidden>    
     <div id="feed"></div>
     <div id="capture-bar">
       <div id="photo-preview-strip"></div>
+      <div id="file-preview-strip"></div>
       <div id="compose">
         <textarea id="note-input" placeholder="Escribe un apunte…" rows="1"></textarea>
         <input type="file" id="photo-input" accept="image/*" capture="environment" multiple>
         <button class="icon-btn" id="photo-btn" type="button" title="Tomar foto" aria-label="Tomar foto">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.3" stroke="white" stroke-width="1.8"/></svg>
+        </button>
+        <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,image/*" multiple>
+        <button class="icon-btn" id="attach-btn" type="button" title="Adjuntar archivo" aria-label="Adjuntar archivo">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M20 11.5l-8.2 8.2a5 5 0 01-7.1-7.1l8.5-8.5a3.3 3.3 0 014.7 4.7l-8.5 8.5a1.7 1.7 0 01-2.4-2.4l7.8-7.8" stroke="#23262B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <button class="icon-btn" id="save-btn" type="button" title="Guardar" aria-label="Guardar" disabled>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
