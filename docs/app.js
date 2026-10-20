@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, collection, addDoc, deleteDoc, doc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { initializeFirestore, persistentLocalCache, terminate, clearIndexedDbPersistence, collection, addDoc, deleteDoc, doc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
@@ -18,6 +18,8 @@ const loginEmail = $('login-email');
 const loginPass = $('login-pass');
 const loginError = $('login-error');
 const loginBtn = $('login-btn');
+const modeBtn = $('mode-btn');
+const togglePass = $('toggle-pass');
 const logoutBtn = $('logout-btn');
 const subtitle = $('subtitle');
 const feed = $('feed');
@@ -31,6 +33,7 @@ const toast = $('toast');
 let currentUser = null;
 let unsubscribe = null;
 let pendingPhotos = [];
+let registerMode = false;
 
 function showToast(msg) {
   toast.textContent = msg;
@@ -163,24 +166,50 @@ function authErrorMessage(code) {
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found':
-      return 'Correo o contraseña incorrectos.';
+      return 'Correo o contraseña incorrectos. Si no tienes cuenta, toca "Crear cuenta".';
     case 'auth/invalid-email':
       return 'El correo no tiene un formato válido.';
     case 'auth/too-many-requests':
       return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.';
     case 'auth/network-request-failed':
       return 'Sin conexión. Revisa tu internet e inténtalo de nuevo.';
+    case 'auth/email-already-in-use':
+      return 'Ese correo ya tiene una cuenta. Inicia sesión.';
+    case 'auth/weak-password':
+      return 'La contraseña debe tener al menos 6 caracteres.';
     default:
-      return 'No se pudo iniciar sesión. Inténtalo de nuevo.';
+      return 'No se pudo completar la acción. Inténtalo de nuevo.';
   }
 }
+
+function setMode(register) {
+  registerMode = register;
+  loginError.textContent = '';
+  loginBtn.textContent = register ? 'Crear cuenta' : 'Entrar';
+  modeBtn.textContent = register ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Crear cuenta';
+  loginPass.autocomplete = register ? 'new-password' : 'current-password';
+}
+
+modeBtn.addEventListener('click', () => setMode(!registerMode));
+
+togglePass.addEventListener('click', () => {
+  const show = loginPass.type === 'password';
+  loginPass.type = show ? 'text' : 'password';
+  togglePass.textContent = show ? 'Ocultar' : 'Ver';
+  togglePass.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+});
 
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   loginError.textContent = '';
   loginBtn.disabled = true;
   try {
-    await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPass.value);
+    const email = loginEmail.value.trim();
+    if (registerMode) {
+      await createUserWithEmailAndPassword(auth, email, loginPass.value);
+    } else {
+      await signInWithEmailAndPassword(auth, email, loginPass.value);
+    }
     loginPass.value = '';
   } catch (err) {
     loginError.textContent = authErrorMessage(err.code);
@@ -189,13 +218,20 @@ loginForm.addEventListener('submit', async (e) => {
   }
 });
 
-logoutBtn.addEventListener('click', () => signOut(auth));
-const togglePass = $('toggle-pass');
-togglePass.addEventListener('click', () => {
-  const show = loginPass.type === 'password';
-  loginPass.type = show ? 'text' : 'password';
-  togglePass.textContent = show ? 'Ocultar' : 'Ver';
-  togglePass.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+logoutBtn.addEventListener('click', async () => {
+  logoutBtn.disabled = true;
+  try {
+    if (unsubscribe) {
+      unsubscribe();
+      unsubscribe = null;
+    }
+    await signOut(auth);
+    await terminate(db);
+    await clearIndexedDbPersistence(db);
+  } catch (err) {
+    // si la limpieza falla, igual se recarga la página
+  }
+  location.replace(location.pathname);
 });
 
 noteInput.addEventListener('input', () => {
@@ -261,6 +297,17 @@ onAuthStateChanged(auth, (user) => {
     logoutBtn.hidden = true;
     subtitle.textContent = 'Inicia sesión para ver tus apuntes';
     feed.innerHTML = '';
+    loginEmail.value = '';
+    loginPass.value = '';
+    loginPass.type = 'password';
+    togglePass.textContent = 'Ver';
+    loginError.textContent = '';
+    setMode(false);
+    noteInput.value = '';
+    noteInput.style.height = 'auto';
+    pendingPhotos = [];
+    updatePreviewStrip();
+    updateSaveState();
   }
 });
 

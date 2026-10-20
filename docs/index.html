@@ -53,6 +53,10 @@
   }
   #login-btn:disabled{background:#3a3d46; color:#6b6d76; cursor:default;}
   #login-error{min-height:20px; margin:0; font-size:13px; color:var(--danger);}
+  #mode-btn{
+    background:transparent; border:none; color:var(--text-muted); font-family:inherit;
+    font-size:14px; padding:10px; cursor:pointer; text-decoration:underline;
+  }
   .pass-wrap{position:relative; display:block;}
   .pass-wrap input{width:100%; padding-right:78px;}
   #toggle-pass{
@@ -149,6 +153,7 @@
       </label>
       <p id="login-error" role="alert"></p>
       <button id="login-btn" type="submit">Entrar</button>
+      <button id="mode-btn" type="button">¿No tienes cuenta? Crear cuenta</button>
     </form>
   </section>
 
