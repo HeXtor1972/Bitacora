@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider, updatePassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, terminate, clearIndexedDbPersistence, collection, addDoc, setDoc, getDocs, deleteDoc, doc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
@@ -29,8 +29,18 @@ const loginPass = $('login-pass');
 const loginError = $('login-error');
 const loginBtn = $('login-btn');
 const modeBtn = $('mode-btn');
+const forgotBtn = $('forgot-btn');
 const togglePass = $('toggle-pass');
 const logoutBtn = $('logout-btn');
+const passBtn = $('pass-btn');
+const passDialog = $('pass-dialog');
+const passForm = $('pass-form');
+const curPass = $('cur-pass');
+const newPass = $('new-pass');
+const passShow = $('pass-show');
+const passError = $('pass-error');
+const passCancel = $('pass-cancel');
+const passSave = $('pass-save');
 const subtitle = $('subtitle');
 const feed = $('feed');
 const noteInput = $('note-input');
@@ -323,6 +333,8 @@ function authErrorMessage(code) {
       return 'Ese correo ya tiene una cuenta. Inicia sesión.';
     case 'auth/weak-password':
       return 'La contraseña debe tener al menos 6 caracteres.';
+    case 'auth/requires-recent-login':
+      return 'Por seguridad, cierra sesión, vuelve a entrar e inténtalo de nuevo.';
     default:
       return 'No se pudo completar la acción. Inténtalo de nuevo.';
   }
@@ -333,6 +345,7 @@ function setMode(register) {
   loginError.textContent = '';
   loginBtn.textContent = register ? 'Crear cuenta' : 'Entrar';
   modeBtn.textContent = register ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Crear cuenta';
+  forgotBtn.hidden = register;
   loginPass.autocomplete = register ? 'new-password' : 'current-password';
 }
 
@@ -361,6 +374,78 @@ loginForm.addEventListener('submit', async (e) => {
     loginError.textContent = authErrorMessage(err.code);
   } finally {
     loginBtn.disabled = false;
+  }
+});
+
+forgotBtn.addEventListener('click', async () => {
+  const email = loginEmail.value.trim();
+  if (!email) {
+    loginError.textContent = 'Escribe tu correo arriba y toca de nuevo "¿Olvidaste tu contraseña?".';
+    return;
+  }
+  loginError.textContent = '';
+  forgotBtn.disabled = true;
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showToast('Listo. Revisa tu correo y la carpeta de spam');
+  } catch (err) {
+    loginError.textContent = authErrorMessage(err.code);
+  } finally {
+    forgotBtn.disabled = false;
+  }
+});
+
+passBtn.addEventListener('click', () => {
+  passError.textContent = '';
+  curPass.value = '';
+  newPass.value = '';
+  passShow.checked = false;
+  curPass.type = 'password';
+  newPass.type = 'password';
+  passDialog.showModal();
+});
+
+passCancel.addEventListener('click', () => passDialog.close());
+
+passDialog.addEventListener('close', () => {
+  curPass.value = '';
+  newPass.value = '';
+  passError.textContent = '';
+});
+
+passShow.addEventListener('change', () => {
+  const type = passShow.checked ? 'text' : 'password';
+  curPass.type = type;
+  newPass.type = type;
+});
+
+passForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  passError.textContent = '';
+  if (!currentUser) return;
+  if (newPass.value.length < 6) {
+    passError.textContent = 'La nueva contraseña debe tener al menos 6 caracteres.';
+    return;
+  }
+  if (newPass.value === curPass.value) {
+    passError.textContent = 'La nueva contraseña debe ser distinta de la actual.';
+    return;
+  }
+  passSave.disabled = true;
+  try {
+    const cred = EmailAuthProvider.credential(currentUser.email, curPass.value);
+    await reauthenticateWithCredential(currentUser, cred);
+    await updatePassword(currentUser, newPass.value);
+    passDialog.close();
+    showToast('Contraseña actualizada');
+  } catch (err) {
+    if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+      passError.textContent = 'La contraseña actual no es correcta.';
+    } else {
+      passError.textContent = authErrorMessage(err.code);
+    }
+  } finally {
+    passSave.disabled = false;
   }
 });
 
@@ -504,6 +589,7 @@ onAuthStateChanged(auth, (user) => {
     loginView.hidden = true;
     mainView.hidden = false;
     logoutBtn.hidden = false;
+    passBtn.hidden = false;
     subtitle.textContent = user.email;
     const q = query(collection(db, 'users', user.uid, 'entries'), orderBy('timestamp', 'desc'));
     unsubscribe = onSnapshot(
@@ -512,9 +598,11 @@ onAuthStateChanged(auth, (user) => {
       () => showToast('No se pudieron cargar los apuntes')
     );
   } else {
+    if (passDialog.open) passDialog.close();
     mainView.hidden = true;
     loginView.hidden = false;
     logoutBtn.hidden = true;
+    passBtn.hidden = true;
     subtitle.textContent = 'Inicia sesión para ver tus apuntes';
     feed.innerHTML = '';
     loginEmail.value = '';

@@ -144,6 +144,41 @@
   }
   .entry-file .name{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .entry-file .size{color:#6b6d76; flex-shrink:0;}
+  .head-actions{display:flex; gap:8px; flex-shrink:0;}
+  #pass-btn{
+    background:transparent; color:var(--text-muted); border:1px solid var(--border);
+    border-radius:20px; padding:7px 14px; font-size:13px; font-family:inherit; cursor:pointer;
+  }
+  #pass-btn:active{background:var(--border);}
+  #forgot-btn{
+    background:transparent; border:none; color:var(--text-muted); font-family:inherit;
+    font-size:14px; padding:6px; cursor:pointer; text-decoration:underline;
+  }
+  #pass-dialog{
+    background:var(--bg-elev); color:var(--text-primary); border:1px solid var(--border);
+    border-radius:16px; padding:22px 20px; width:min(92vw, 420px);
+  }
+  #pass-dialog::backdrop{background:rgba(0,0,0,0.65);}
+  #pass-dialog h2{margin:0 0 14px; font-family:'Source Serif 4',Georgia,serif; font-size:20px; font-weight:600;}
+  #pass-form{display:flex; flex-direction:column; gap:12px;}
+  #pass-form label{font-size:13px; color:var(--text-muted); display:flex; flex-direction:column; gap:6px;}
+  #pass-form input[type="password"], #pass-form input[type="text"]{
+    background:var(--bg); border:1px solid var(--border); border-radius:12px;
+    color:var(--text-primary); font-family:inherit; font-size:16px; padding:12px 14px; outline:none;
+  }
+  #pass-form input[type="password"]:focus, #pass-form input[type="text"]:focus{border-color:var(--accent-note);}
+  #pass-form label.check{flex-direction:row; align-items:center; gap:8px;}
+  #pass-error{min-height:20px; margin:0; font-size:13px; color:var(--danger);}
+  .dialog-actions{display:flex; gap:10px; justify-content:flex-end;}
+  #pass-cancel{
+    background:transparent; color:var(--text-muted); border:1px solid var(--border);
+    border-radius:12px; padding:11px 18px; font-size:15px; font-family:inherit; cursor:pointer;
+  }
+  #pass-save{
+    background:var(--accent-note); color:#fff; border:none; border-radius:12px;
+    padding:11px 20px; font-size:15px; font-weight:600; font-family:inherit; cursor:pointer;
+  }
+  #pass-save:disabled{background:#3a3d46; color:#6b6d76; cursor:default;}
 </style>
 
 </head>
@@ -155,7 +190,10 @@
         <h1>Bitácora</h1>
         <p id="subtitle">Cargando…</p>
       </div>
-      <button id="logout-btn" type="button" hidden>Salir</button>
+      <div class="head-actions">
+        <button id="pass-btn" type="button" hidden>Contraseña</button>
+        <button id="logout-btn" type="button" hidden>Salir</button>
+      </div>
     </div>
   </header>
 
@@ -171,8 +209,9 @@
         </span>
       </label>
       <p id="login-error" role="alert"></p>
-      <button id="login-btn" type="submit">Entrar</button>
+      <button id="login-btn" type="submit">Entrar</button>      
       <button id="mode-btn" type="button">¿No tienes cuenta? Crear cuenta</button>
+      <button id="forgot-btn" type="button">¿Olvidaste tu contraseña?</button>
     </form>
   </section>
 
@@ -197,6 +236,24 @@
       </div>
     </div>
   </section>
+
+  <dialog id="pass-dialog">
+    <h2>Cambiar contraseña</h2>
+    <form id="pass-form">
+      <label>Contraseña actual
+        <input id="cur-pass" type="password" autocomplete="current-password" required>
+      </label>
+      <label>Nueva contraseña (mínimo 6 caracteres)
+        <input id="new-pass" type="password" autocomplete="new-password" minlength="6" required>
+      </label>
+      <label class="check"><input type="checkbox" id="pass-show"> Mostrar contraseñas</label>
+      <p id="pass-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button id="pass-cancel" type="button">Cancelar</button>
+        <button id="pass-save" type="submit">Guardar</button>
+      </div>
+    </form>
+  </dialog>
 
   <div id="toast"></div>
 </div>
